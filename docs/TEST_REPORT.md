@@ -4,7 +4,7 @@ Date: November 5, 2026. All survey responses used for testing are synthetic.
 
 ## Automated checks
 
-`npm test`: 15 tests passed after the adversarial-review fixes. These include nine PostgreSQL integration tests, three editor component regression tests in a DOM emulator, two aggregation/CSV tests, and one test decoding the downloaded production QR image. `npm run lint` and `npm run build` are required before publication. The dependency installation reported zero audit vulnerabilities.
+`npm test`: 15 tests passed after the adversarial-review fixes. These include nine PostgreSQL integration tests, three editor component regression tests in a DOM emulator, two aggregation/CSV tests, and one test decoding the downloaded production QR image. `npm run lint` and `npm run build` also passed before publication. The dependency installation reported zero audit vulnerabilities.
 
 Database tests execute migration 001 followed by migration 002 in PGlite PostgreSQL. They exercise complete relational saves, rollback on invalid choices, one-active-survey enforcement, anonymous denial, unauthorized authenticated-user denial, public survey data, atomic responses, duplicates, foreign questions/choices, lifecycle locks, preserving historical responses, cascading deletion, and instructor result reads. The new lifecycle regression verifies that saving an eligible closed survey persists Draft status.
 

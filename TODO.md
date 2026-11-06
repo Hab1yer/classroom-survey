@@ -55,7 +55,7 @@ Updated November 5, 2026. Original supplied checklist: `docs/PROVIDED_TODO.md`. 
 - [x] Database and results screenshots captured without credentials or student data.
 - [x] Setup/deployment instructions and implemented database documentation.
 - [x] Verification report and adversarial-review resolution notes.
-- [ ] Final source/evidence publication and submission ZIP verification.
+- [x] Final source/evidence publication and submission ZIP verification.
 - [ ] Add app instructor credentials privately in HuskyCT; never in GitHub.
 - [ ] Project owner reviews the report and submits through HuskyCT.
 
