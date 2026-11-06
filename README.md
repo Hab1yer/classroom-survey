@@ -9,7 +9,7 @@ Use Node.js 24 LTS and npm. Run `npm ci`, copy `.env.example` to `.env.local`, f
 ## Database setup
 
 1. Create a free Supabase project with the Data API enabled. Disable automatic table exposure; the migration grants precisely the permissions needed.
-2. Run `supabase/migrations/001_classroom.sql` in Supabase SQL Editor on an empty project. The migration creates five application tables, an instructor allowlist, RLS policies, indexes, constraints, and transactional RPCs. Do not rerun the initial migration against an initialized database.
+2. Run the SQL files in `supabase/migrations/` in numeric order in Supabase SQL Editor. `001_classroom.sql` initializes an empty project; `002_save_draft_status.sql` fixes the draft status transition. On an existing installation with 001 already applied, run only 002. Do not rerun 001 against an initialized database.
 3. In Authentication → Users, create an instructor with a private password and auto confirmation enabled. For classroom use, disable public signups in Authentication → Sign In / Providers. Even if signups are enabled, new accounts have no instructor permissions.
 4. Add the new account to the allowlist using SQL: `insert into public.instructors(user_id) select id from auth.users where email = 'YOUR_INSTRUCTOR_EMAIL';` Verify that exactly the intended user was inserted.
 5. Put the project URL and public key in `.env.local` and restart Vite.

@@ -41,6 +41,9 @@ beforeAll(async () => {
     `create schema auth; create table auth.users(id uuid primary key); create role anon nologin; create role authenticated nologin; grant usage on schema public,auth to anon,authenticated; create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$; insert into auth.users values ('${teacher}'),('${other}');`,
   );
   await db.exec(readFileSync("supabase/migrations/001_classroom.sql", "utf8"));
+  await db.exec(
+    readFileSync("supabase/migrations/002_save_draft_status.sql", "utf8"),
+  );
   await db.exec(`insert into instructors values('${teacher}')`);
   await identity();
 }, 30000);
@@ -48,6 +51,21 @@ afterAll(async () => {
   await db.close();
 });
 describe("Real PostgreSQL schema and RPC security", () => {
+  it("returns a closed survey without responses to draft when saved", async () => {
+    const id = await save("Closed draft regression");
+    await db.query("select activate_survey($1)", [id]);
+    await db.query("select close_survey($1)", [id]);
+    await db.query("select save_survey($1,$2,$3,$4::jsonb)", [
+      id,
+      "Edited draft",
+      "",
+      JSON.stringify(questions),
+    ]);
+    expect(
+      (await db.query("select title,status from surveys where id=$1", [id]))
+        .rows[0],
+    ).toEqual({ title: "Edited draft", status: "draft" });
+  });
   it("saves the full relational graph atomically and rejects malformed choices", async () => {
     const id = await save();
     expect(

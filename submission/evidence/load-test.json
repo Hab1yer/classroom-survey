@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-05T22:36:37.289Z",
+  "survey_title": "[Load test] 200 concurrent submissions",
+  "requests": 200,
+  "concurrency": 200,
+  "successful": 200,
+  "failed": 0,
+  "elapsed_ms": 1152,
+  "mean_ms": 926,
+  "p95_ms": 1100,
+  "max_ms": 1120,
+  "errors": []
+}

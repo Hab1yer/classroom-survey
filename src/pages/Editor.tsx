@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
@@ -11,7 +11,7 @@ import {
   Play,
 } from "lucide-react";
 import { getSurvey, getResponses, message, rpc, saveSurvey } from "../lib/api";
-import type { DraftQuestion } from "../lib/types";
+import type { DraftQuestion, Status } from "../lib/types";
 const newQuestion = (): DraftQuestion => ({
   key: crypto.randomUUID(),
   question_text: "",
@@ -29,14 +29,27 @@ export default function Editor() {
   const [error, setError] = useState("");
   const [locked, setLocked] = useState("");
   const [dirty, setDirty] = useState(false);
+  const savedId = useRef<string | null>(id || null);
+  const [status, setStatus] = useState<Status>("draft");
   useEffect(() => {
     let live = true;
+    savedId.current = id || null;
+    setLocked("");
+    if (!id) {
+      setTitle("");
+      setDescription("");
+      setQuestions([newQuestion()]);
+      setStatus("draft");
+      setDirty(false);
+      setLoading(false);
+    } else setLoading(true);
     if (id)
       void Promise.all([getSurvey(id), getResponses(id)])
         .then(([s, r]) => {
           if (!live) return;
           setTitle(s.title);
           setDescription(s.description);
+          setStatus(s.status);
           setQuestions(
             s.questions.map((q) => ({
               ...q,
@@ -90,15 +103,26 @@ export default function Editor() {
       (e.nativeEvent as SubmitEvent).submitter?.getAttribute("value") ===
       "activate";
     try {
+      // Retain the committed ID when the separate activation request fails.
       const sid = await saveSurvey(
-        id || null,
+        savedId.current,
         title.trim(),
         description.trim(),
         questions,
       );
+      savedId.current = sid;
+      setStatus("draft");
       setDirty(false);
       if (activate) {
-        await rpc("activate_survey", { p_survey_id: sid });
+        try {
+          await rpc("activate_survey", { p_survey_id: sid });
+        } catch (activationError) {
+          // A refresh must also reopen the saved draft, not an empty new form.
+          navigate(`/surveys/${sid}/edit`, { replace: true });
+          throw new Error(
+            `Your survey was saved, but activation could not be confirmed. ${message(activationError)}`,
+          );
+        }
         navigate(`/surveys/${sid}/present`);
       } else navigate("/dashboard");
     } catch (e) {
@@ -126,7 +150,7 @@ export default function Editor() {
           <p className="eyebrow">SURVEY BUILDER</p>
           <h1>{id ? "Edit survey" : "A new question."}</h1>
         </div>
-        <span className="badge draft">Draft</span>
+        <span className={`badge ${status}`}>{status}</span>
       </div>
       {locked ? (
         <div className="notice">{locked}</div>
